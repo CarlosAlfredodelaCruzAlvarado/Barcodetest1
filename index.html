@@ -17,7 +17,7 @@
             </div>
 
             <div>
-                <video id="video" width="1080" height="720" style="border: 1px solid gray"></video>
+                <video id="video" width="300" height="200" style="border: 1px solid gray"></video>
             </div>
 
             <div id="sourceSelectPanel" style="display:none">
@@ -28,6 +28,11 @@
 
             <label>Result:</label>
             <pre><code id="result"></code></pre>
+            
+            <div>
+                <label for="zoomRange">Zoom:</label>
+                <input type="range" id="zoomRange" min="1" max="10" value="1">
+            </div>
 
         </section>
     </main>
@@ -36,6 +41,7 @@
     <script type="text/javascript">
         window.addEventListener('load', function () {
             let selectedDeviceId;
+            let zoomValue = 1;
             const codeReader = new ZXing.BrowserMultiFormatReader()
             console.log('ZXing code reader initialized')
             codeReader.listVideoInputDevices()
@@ -78,10 +84,35 @@
                         console.log('Reset.')
                     })
 
+                    const zoomRange = document.getElementById('zoomRange');
+                    zoomRange.addEventListener('input', (event) => {
+                        zoomValue = parseFloat(event.target.value);
+                        applyZoom(selectedDeviceId, zoomValue);
+                    });
                 })
                 .catch((err) => {
                     console.error(err)
                 })
+                
+            function applyZoom(deviceId, zoomValue) {
+                const constraints = {
+                    video: {
+                        deviceId: deviceId,
+                        advanced: [{
+                            zoom: zoomValue
+                        }]
+                    }
+                };
+
+                navigator.mediaDevices.getUserMedia(constraints)
+                    .then((stream) => {
+                        const video = document.getElementById('video');
+                        video.srcObject = stream;
+                    })
+                    .catch((err) => {
+                        console.error('Error applying zoom:', err);
+                    });
+            }
         })
     </script>
 
